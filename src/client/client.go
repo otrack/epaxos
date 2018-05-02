@@ -15,6 +15,7 @@ import (
 var clientId string = *flag.String("id", "", "the id of the client. Default is RFC 4122 nodeID.")
 var masterAddr *string = flag.String("maddr", "", "Master address. Defaults to localhost")
 var masterPort *int = flag.Int("mport", 7087, "Master port. ")
+var clients *int = flag.Int("clients", 1, "Number of clients. ")
 var reqsNb *int = flag.Int("q", 1000, "Total number of requests. ")
 var writes *int = flag.Int("w", 100, "Percentage of updates (writes). ")
 var psize *int = flag.Int("psize", 100, "Payload size for writes.")
@@ -30,13 +31,27 @@ func main() {
 
 	flag.Parse()
 
-	runtime.GOMAXPROCS(*procs)
-
-	rand.Seed(time.Now().UnixNano())
-
 	if *conflicts > 100 {
 		log.Fatalf("Conflicts percentage must be between 0 and 100.\n")
 	}
+
+	doneChan := make(chan bool)
+
+	for i := 0; i < *clients; i++ {
+	  log.Printf("creating client %v", i)
+	  go client(doneChan)
+  }
+
+	for i := 0; i < *clients; i++ {
+	  log.Printf("waiting client %v", i)
+	  <-doneChan
+  }
+}
+
+func client(doneChan chan bool) {
+	runtime.GOMAXPROCS(*procs)
+
+	rand.Seed(time.Now().UnixNano())
 
 	proxy := bindings.NewParameters(*masterAddr, *masterPort, *verbose, *noLeader, *fast, *localReads)
 	proxy.Connect()
@@ -101,6 +116,8 @@ func main() {
 
 	after_total := time.Now()
 	fmt.Printf("Test took %v\n", after_total.Sub(before_total))
+
+	doneChan <- true
 }
 
 // convert nanosecond to millisecond

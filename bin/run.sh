@@ -80,28 +80,9 @@ fi
 #   -s	replace read with short scan (100 elements)
 
 if [ "${TYPE}" == "client" ]; then
-    args="-maddr ${MADDR} -mport ${MPORT} ${CLIENT_EXTRA_ARGS}"
-    echo "client mode: ${args}" >all_logs
-
-    mkdir -p logs/
-
-    for i in $(seq 1 ${NCLIENTS}); do
-        ${DIR}/client ${args} >"logs/c_$i.txt" 2>&1 &
-        #echo "> Client $i of ${NCLIENTS} started!"
-    done
-
-    ended=-1
-    while [ ${ended} != ${NCLIENTS} ]; do
-        ended=$(cat logs/c_*.txt | grep "Disconnected" | wc -l)
-        echo "> Ended ${ended} of ${NCLIENTS}!"
-        #ls -d logs/* | xargs wc -l
-        sleep 10
-    done
-
-    for i in $(seq 1 ${NCLIENTS}); do
-        cat "logs/c_$i.txt" >>all_logs
-    done
-
+    args="-maddr ${MADDR} -mport ${MPORT} -clients ${CLIENTS} ${CLIENT_EXTRA_ARGS}"
+    echo "client mode: ${args}"
+    ${DIR}/client ${args}
     echo "Will sleep forever"
     while true; do sleep 10000; done
 fi
