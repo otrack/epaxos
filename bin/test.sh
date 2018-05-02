@@ -44,28 +44,28 @@ servers() {
 
 clients() {
     echo ">>>>> Starting clients..."
-    for i in $(seq 1 $NCLIENTS); do
-        ${CLIENT} -v \
-            -q ${CMDS} \
-            -w 50 \
-            -c 100 \
-            -l \
-            -psize ${PSIZE} >"${LOGS}/c_$i.txt" 2>&1 &
-    done
+    ${CLIENT} -v \
+        -q ${CMDS} \
+        -w 50 \
+        -c 100 \
+        -l \
+        -clients ${NCLIENTS} \
+        -psize ${PSIZE} >"${LOGS}/clients.txt" 2>&1 &
+
+    if ((${failure} > 0)); then
+        sleep 20
+        leader=$(grep "new leader" ${LOGS}/m.txt | tail -n 1 | awk '{print $4}')
+        port=$(grep "node ${leader}" ${LOGS}/m.txt | sed -n 's/.*\(:.*\]\).*/\1/p' | sed 's/[]:]//g')
+        pid=$(ps -ef | grep "bin/server" | grep "${port}" | awk '{print $2}')
+        echo ">>>>> Injecting failure... (${leader}, ${port}, ${pid})"
+        kill -9 ${pid}
+        failure=$((failure - 1))
+    fi
 
     ended=-1
     while [ ${ended} != ${NCLIENTS} ]; do
-        ended=$(tail -n 1 logs/c_*.txt | grep "Test took" | wc -l)
+        ended=$(cat logs/clients.txt | grep "Test took" | wc -l)
         sleep 1
-        if ((${failure} > 0)); then
-            sleep 20
-            leader=$(grep "new leader" ${LOGS}/m.txt | tail -n 1 | awk '{print $4}')
-            port=$(grep "node ${leader}" ${LOGS}/m.txt | sed -n 's/.*\(:.*\]\).*/\1/p' | sed 's/[]:]//g')
-            pid=$(ps -ef | grep "bin/server" | grep "${port}" | awk '{print $2}')
-            echo ">>>>> Injecting failure... (${leader}, ${port}, ${pid})"
-            kill -9 ${pid}
-            failure=$((failure - 1))
-        fi
     done
     echo ">>>>> Client ended!"
 }
