@@ -35,16 +35,16 @@ func main() {
 		log.Fatalf("Conflicts percentage must be between 0 and 100.\n")
 	}
 
-  doneChan := make(chan bool)
+	doneChan := make(chan bool)
 
 	for i := 0; i < *clients; i++ {
 	  log.Printf("creating client %v", i)
-    go client(doneChan)
+	  go client(doneChan)
   }
 
 	for i := 0; i < *clients; i++ {
 	  log.Printf("waiting client %v", i)
-    <-doneChan
+	  <-doneChan
   }
 }
 
@@ -117,7 +117,7 @@ func client(doneChan chan bool) {
 	after_total := time.Now()
 	fmt.Printf("Test took %v\n", after_total.Sub(before_total))
 
-  doneChan <- true
+	doneChan <- true
 }
 
 // convert nanosecond to millisecond
