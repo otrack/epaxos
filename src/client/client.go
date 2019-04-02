@@ -49,13 +49,14 @@ func main() {
 		proxy.Disconnect()
 	}
 
-	log.Printf("client: %v (verbose=%v, psize=%v, conflicts=%v)", *id, *verbose, *psize, *conflicts)
+	blackColor := *conflicts == 142 && *id <= *clients/2
+
+	log.Printf("client: %v (verbose=%v, psize=%v, conflicts=%v, black color=%v)", *id, *verbose, *psize, *conflicts, blackColor)
 
 	karray := make([]state.Key, *reqsNb)
 	put := make([]bool, *reqsNb)
 
 	clientKey := state.Key(uint64(uuid.New().Time())) // a command id unique to this client.
-	blackColor := *conflicts == 142 && *id <= *clients/2
 
 	for i := 0; i < *reqsNb; i++ {
 		put[i] = false
