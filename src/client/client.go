@@ -13,7 +13,6 @@ import (
 )
 
 var id *int = flag.Int("id", 1, "The id of the client.")
-var clients *int = flag.Int("clients", 0, "Total number of clients.")
 var masterAddr *string = flag.String("maddr", "", "Master address. Defaults to localhost")
 var masterPort *int = flag.Int("mport", 7087, "Master port. ")
 var reqsNb *int = flag.Int("q", 1000, "Total number of requests. ")
@@ -73,7 +72,7 @@ func main() {
 
 		if *conflicts == 142 {
 			// two-class experiment
-			if client % 2 == 0 {
+			if *id % 2 == 0 {
 				karray[i] = 42
 			}
 		} else {
