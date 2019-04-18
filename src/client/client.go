@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var id *int = flag.Int("id", 0, "The id of the client.")
+var id *int = flag.Int("id", 1, "The id of the client.")
 var clients *int = flag.Int("clients", 0, "Total number of clients.")
 var masterAddr *string = flag.String("maddr", "", "Master address. Defaults to localhost")
 var masterPort *int = flag.Int("mport", 7087, "Master port. ")
@@ -49,9 +49,7 @@ func main() {
 		proxy.Disconnect()
 	}
 
-	blackColor := *conflicts == 142 && *id <= *clients/2
-
-	log.Printf("client: %v (verbose=%v, psize=%v, conflicts=%v, black color=%v)", *id, *verbose, *psize, *conflicts, blackColor)
+	log.Printf("client: %v (verbose=%v, psize=%v, conflicts=%v)", *id, *verbose, *psize, *conflicts)
 
 	karray := make([]state.Key, *reqsNb)
 	put := make([]bool, *reqsNb)
@@ -67,10 +65,22 @@ func main() {
 			}
 		}
 
-		if blackColor || rand.Intn(100) < *conflicts {
-			karray[i] = 42
+		// maybe issue unique key per client
+		// issue 42 if:
+		// - two-class experiment and we have an even id
+		// - normal experiment and the random says so
+		karray[i] = clientKey
+
+		if *conflicts == 142 {
+			// two-class experiment
+			if client % 2 == 0 {
+				karray[i] = 42
+			}
 		} else {
-			karray[i] = clientKey
+			// normal experiment
+			if rand.Intn(100) < *conflicts {
+				karray[i] = 42
+			}
 		}
 	}
 
