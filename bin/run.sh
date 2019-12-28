@@ -62,11 +62,9 @@ fi
 
 # Usage of ./bin/client:
 #   -c int
-#     	Percentage of conflicts. Defaults to 0%
+#     	Percentage of conflicts. Defaults to 0. If the conflict rate is 142, two classes of clients (conflict and non-conflicting) are created.
 #   -e	Egalitarian (no leader).
 #   -f	Fast Paxos: send message directly to all replicas.
-#   -id string
-#     	the id of the client. Default is RFC 4122 nodeID.
 #   -maddr string
 #     	Master address. Defaults to localhost
 #   -mport int
@@ -92,7 +90,7 @@ if [ "${TYPE}" == "client" ]; then
     mkdir -p logs/
 
     for i in $(seq 1 ${NCLIENTS}); do
-        ${DIR}/client ${args} 2>&1 | tee -a logs/c_${i}.txt ${ALL} >/dev/null &
+        ${DIR}/client -id ${i} ${args} 2>&1 | tee -a logs/c_${i}.txt ${ALL} >/dev/null &
         echo "> Client $i of ${NCLIENTS} started!"
     done
 

@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var clientId string = *flag.String("id", "", "the id of the client. Default is RFC 4122 nodeID.")
+var id *int = flag.Int("id", 1, "The id of the client.")
 var masterAddr *string = flag.String("maddr", "", "Master address. Defaults to localhost")
 var masterPort *int = flag.Int("mport", 7087, "Master port. ")
 var reqsNb *int = flag.Int("q", 1000, "Total number of requests. ")
@@ -22,7 +22,7 @@ var noLeader *bool = flag.Bool("e", false, "Egalitarian (no leader). ")
 var fast *bool = flag.Bool("f", false, "Fast Paxos: send message directly to all replicas. ")
 var localReads *bool = flag.Bool("l", false, "Execute reads at the closest (local) replica. ")
 var procs *int = flag.Int("p", 2, "GOMAXPROCS. ")
-var conflicts *int = flag.Int("c", 0, "Percentage of conflicts. Defaults to 0%")
+var conflicts *int = flag.Int("c", 0, "Percentage of conflicts. Defaults to 0. If the conflict rate is 142, two classes of clients are created: one that issues conflicting commands, another that doesn't")
 var verbose *bool = flag.Bool("v", false, "verbose mode. ")
 var scan *bool = flag.Bool("s", false, "replace read with short scan (100 elements)")
 
@@ -34,10 +34,6 @@ func main() {
 
 	rand.Seed(time.Now().UnixNano())
 
-	if *conflicts > 100 {
-		log.Fatalf("Conflicts percentage must be between 0 and 100.\n")
-	}
-
 	var proxy *bindings.Parameters
 	for {
 		proxy = bindings.NewParameters(*masterAddr, *masterPort, *verbose, *noLeader, *fast, *localReads)
@@ -48,16 +44,13 @@ func main() {
 		proxy.Disconnect()
 	}
 
-	if clientId == "" {
-		clientId = uuid.New().String()
-	}
-
-	log.Printf("client: %v (verbose=%v, psize=%v, conflicts=%v)", clientId, *verbose, *psize, *conflicts)
+	log.Printf("client: %v (verbose=%v, psize=%v, conflicts=%v)", *id, *verbose, *psize, *conflicts)
 
 	karray := make([]state.Key, *reqsNb)
 	put := make([]bool, *reqsNb)
 
 	clientKey := state.Key(uint64(uuid.New().Time())) // a command id unique to this client.
+
 	for i := 0; i < *reqsNb; i++ {
 		put[i] = false
 		if *writes > 0 {
@@ -66,10 +59,21 @@ func main() {
 				put[i] = true
 			}
 		}
+
+		// maybe issue unique key per client
+		// issue 42 if:
+		// - two-class experiment and we have an even id
+		// - normal experiment and the random says so
 		karray[i] = clientKey
-		if *conflicts > 0 {
-			r := rand.Intn(100)
-			if r <= *conflicts {
+
+		if *conflicts == 142 {
+			// two-class experiment
+			if *id % 2 == 0 {
+				karray[i] = 42
+			}
+		} else {
+			// normal experiment
+			if rand.Intn(100) < *conflicts {
 				karray[i] = 42
 			}
 		}
