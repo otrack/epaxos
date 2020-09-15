@@ -493,7 +493,7 @@ func (r *Replica) replyPrepare(replicaId int32, reply *epaxosproto.PrepareReply)
 }
 
 func (r *Replica) replyPreAccept(replicaId int32, reply *epaxosproto.PreAcceptReply) {
-	dlog.Printf("Sending ReplyPreAccept %d.%d w. ballot=%d, deps=%d, committedDeps=%d to %d\n", reply.Replica, reply.Instance, reply.Ballot, reply.Deps, reply.CommittedDeps, replicaId)
+	dlog.Printf("Sending ReplyPreAccept %d.%d w. ballot=%d, deps=%d, seq=%d, committedDeps=%d to %d\n", reply.Replica, reply.Instance, reply.Ballot, reply.Deps, reply.Seq, reply.CommittedDeps, replicaId)
 	r.SendMsg(replicaId, r.preAcceptReplyRPC, reply)
 }
 
@@ -729,7 +729,7 @@ func (r *Replica) updateAttributes(cmds []state.Command, seq int32, deps []int32
 
 func (r *Replica) mergeAttributes(seq1 int32, deps1 []int32, seq2 int32, deps2 []int32) (int32, []int32, bool) {
 	equal := true
-	if seq1 != seq2 {
+	if seq1 != seq2 && !r.Exec {
 		equal = false
 		if seq2 > seq1 {
 			seq1 = seq2

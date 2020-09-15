@@ -52,12 +52,11 @@ func main() {
 		clientId = uuid.New().String()
 	}
 
-	log.Printf("client: %v (verbose=%v, psize=%v, conflicts=%v)", clientId, *verbose, *psize, *conflicts)
-
 	karray := make([]state.Key, *reqsNb)
 	put := make([]bool, *reqsNb)
 
 	clientKey := state.Key(uint64(uuid.New().Time())) // a command id unique to this client.
+	log.Printf("client: %v (verbose=%v, psize=%v, conflicts=%v, key=%v)", clientId, *verbose, *psize, *conflicts, clientKey)
 	for i := 0; i < *reqsNb; i++ {
 		put[i] = false
 		if *writes > 0 {
