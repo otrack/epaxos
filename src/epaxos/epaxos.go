@@ -697,7 +697,8 @@ func (r *Replica) updateConflicts(cmds []state.Command, replica int32, instance 
 }
 
 func (r *Replica) updateAttributes(cmds []state.Command, seq int32, deps []int32, replica int32, instance int32) (int32, []int32, bool) {
-	changed := false
+	// FIXME read/read conflicts?
+	changed := false	
 	for q := 0; q < r.N; q++ {
 		if r.Id != replica && int32(q) == replica {
 			continue
@@ -710,7 +711,7 @@ func (r *Replica) updateAttributes(cmds []state.Command, seq int32, deps []int32
 						seq = r.InstanceSpace[q][d].Seq + 1
 					}
 					changed = true
-					break
+					break // FIXME remove? (see NSDI'21)
 				}
 			}
 		}
