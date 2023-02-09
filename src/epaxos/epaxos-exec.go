@@ -86,13 +86,17 @@ func (e *Exec) strongconnect(v *Instance, index *int) bool {
 			}
 
 			if (e.r.transconf) {
+				conflict := false
 				for _, alpha := range v.Cmds {
 					for _, beta := range e.r.InstanceSpace[q][i].Cmds {
-						if !state.Conflict(&alpha, &beta) {
-							continue
+						if state.Conflict(&alpha, &beta) {
+							conflict := true;
 						}
 					}
 				}
+				if !conflict {
+					continue
+				}			
 			}
 
 			if e.r.InstanceSpace[q][i].Status == epaxosproto.EXECUTED {
