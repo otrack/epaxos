@@ -1527,7 +1527,7 @@ func (r *Replica) handleTryPreAcceptReply(tpar *epaxosproto.TryPreAcceptReply) {
 
 	lb.tpaReps++
 
-	if tpar.VBallot == lb.lastTriedBallot {
+	if tpar.VBallot == lb.lastTriedBallot && tpar.ConflictInstance == 0 {
 		lb.preAcceptOKs++
 		if lb.preAcceptOKs >= r.N/2 {
 			//it's safe to start Accept phase

@@ -90,7 +90,7 @@ func (e *Exec) strongconnect(v *Instance, index *int) bool {
 				for _, alpha := range v.Cmds {
 					for _, beta := range e.r.InstanceSpace[q][i].Cmds {
 						if state.Conflict(&alpha, &beta) {
-							conflict := true;
+							conflict = true;
 						}
 					}
 				}
